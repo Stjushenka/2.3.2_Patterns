@@ -1,69 +1,76 @@
 package ru.netology;
 
+
+
 import com.github.javafaker.Faker;
+import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.filter.log.LogDetail;
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
+import lombok.Value;
+
 
 import java.util.Locale;
 
-import org.junit.jupiter.api.BeforeAll;
+    public class DataGenerator {
+        private static final RequestSpecification requestSpec = new RequestSpecBuilder()
+                .setBaseUri("http://localhost")
+                .setPort(9999)
+                .setAccept(ContentType.JSON)
+                .setContentType(ContentType.JSON)
+                .log(LogDetail.ALL)
+                .build();
+        private static final Faker faker = new Faker(new Locale("en"));
 
-import static io.restassured.RestAssured.*;
+        private DataGenerator() {
+        }
 
+        private static void sendRequest(registeredUser user) {
+            RestAssured.given()
+                    .spec(requestSpec)
+                    .body(user)
+                    .when()
+                    .post("/api/system/users")
+                    .then()
+                    .statusCode(200);
+        }
 
-public class DataGenerator {
+        public static String getRandomLogin() {
+            String login = faker.name().username();
+            return login;
+        }
 
+        public static String getRandomPassword() {
+            String password = faker.internet().password();
+            return password;
+        }
 
-    private static Faker faker = new Faker(new Locale("en"));
-    private static RequestSpecification requestSpec = new RequestSpecBuilder()
-            .setBaseUri("http://localhost")
-            .setPort(9999)
-            .setAccept(ContentType.JSON)
-            .setContentType(ContentType.JSON)
-            .log(LogDetail.ALL)
-            .build();
+        public static class Registration {
+            private Registration() {
+            }
 
-    @BeforeAll
-    private static void makeRegistration(RequestData registration) {
-        given()
-                .spec(requestSpec)
-                .body(registration)
-                .when()
-                .post("/api/system/users")
-                .then()
-                .statusCode(200);
+            public static registeredUser getUser(String status) {
+                registeredUser user = new registeredUser(
+                        getRandomLogin(),
+                        getRandomPassword(),
+                        status
+                );
+                return user;
+            }
+
+            public static registeredUser getRegisterUser(String status) {
+                registeredUser registerUser = getRegisterUser(status);
+                DataGenerator.sendRequest(registerUser);
+                return registerUser;
+            }
+        }
+
+        @Value
+        public static class registeredUser {
+            String login;
+            String password;
+            String status;
+        }
+
     }
-
-
-    public static RequestData generateNewActiveValidUser() {
-        String login = faker.name().firstName().toLowerCase();
-        String password = faker.internet().password();
-        String status = "active";
-        makeRegistration(new RequestData(login, password, status));
-        return new RequestData(login, password, status);
-    }
-
-    public static RequestData generateNewBlockedUser() {
-        String login = faker.name().firstName().toLowerCase();
-        String password = faker.internet().password();
-        makeRegistration(new RequestData(login, password, "blocked"));
-        return new RequestData(login, password, "blocked");
-    }
-
-    public static RequestData generateNewActiveUserInvalidLogin() {
-        String password = faker.internet().password();
-        String status = "active";
-        makeRegistration(new RequestData("nastya", password, status));
-        return new RequestData("login", password, status);
-    }
-
-    public static RequestData generateNewActiveInvalidPassword() {
-        String login = faker.name().firstName().toLowerCase();
-        String status = "active";
-        makeRegistration(new RequestData(login, "password", status));
-        return new RequestData(login, "123456", status);
-    }
-
-}

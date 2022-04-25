@@ -1,65 +1,81 @@
 package ru.netology;
-
-import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.SelenideElement;
+import lombok.val;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import ru.netology.DataGenerator;
 
-import static com.codeborne.selenide.Selectors.byText;
+import java.time.Duration;
+
+import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Selectors.withText;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.open;
-import static org.openqa.selenium.By.cssSelector;
-
+import static ru.netology.DataGenerator.Registration.getRegisterUser;
+import static ru.netology.DataGenerator.Registration.getUser;
+import static ru.netology.DataGenerator.getRandomLogin;
+import static ru.netology.DataGenerator.getRandomPassword;
 
 public class RegistrationTest {
 
     @BeforeEach
-    void setUp() {
-        open("http://localhost:9999/");
+    void setup() {
+        open("http://localhost:9999");
     }
 
     @Test
-    void shouldLogInIfUserIsValid (){
-        RequestData user = DataGenerator.generateNewActiveValidUser();
-        open("http://localhost:9999");
-        SelenideElement form = $("[action]");
-        form.$(cssSelector("[name=login]")).sendKeys(user.getLogin());
-        form.$(cssSelector("[name=password]")).sendKeys(user.getPassword());
-        form.$(cssSelector("[type=button]")).click();
-        $(byText("Личный кабинет")).waitUntil(Condition.visible, 15000);
+    @DisplayName("Should successfully login with active registered user")
+    public void shouldSuccessfulLoginIfRegisteredActiveUser() {
+        val registeredUser = getRegisterUser("active");
+        $("[name='login']").setValue(registeredUser.getLogin());
+        $("[type='password']").setValue(registeredUser.getPassword());
+        $("[data-test-id='action-login']").click();
+        $(".App_appContainer__3jRx1").shouldBe(visible, Duration.ofSeconds(15)).shouldHave(text("Личный кабинет"));
     }
 
     @Test
-    void shouldNotLogInIfBlockedUser() {
-        RequestData user = DataGenerator.generateNewBlockedUser();
-        open("http://localhost:9999");
-        SelenideElement form = $("[action]");
-        form.$(cssSelector("[name=login]")).sendKeys(user.getLogin());
-        form.$(cssSelector("[name=password]")).sendKeys(user.getPassword());
-        form.$(cssSelector("[type=button]")).click();
-        $(byText("Пользователь заблокирован")).waitUntil(Condition.visible, 15000);
+    @DisplayName("Should get error message if login with not registered user")
+    void shouldGetErrorIfNotRegisteredUser() {
+        val notRegisteredUser = getUser("active");
+        $("[name='login']").setValue(notRegisteredUser.getLogin());
+        $("[type='password']").setValue(notRegisteredUser.getPassword());
+        $("[data-test-id='action-login']").click();
+        $(withText("Ошибка")).shouldBe(appear, Duration.ofSeconds(15));
+        $(".notification__content").shouldHave(exactText("Ошибка! Неверно указан логин или пароль"));
     }
 
     @Test
-
-    void shouldNotLogInIfInvalidLogin() {
-        RequestData user = DataGenerator.generateNewActiveUserInvalidLogin();
-        open("http://localhost:9999");
-        SelenideElement form = $("[action]");
-        form.$(cssSelector("[name=login]")).sendKeys(user.getLogin());
-        form.$(cssSelector("[name=password]")).sendKeys(user.getPassword());
-        form.$(cssSelector("[type=button]")).click();
-        $(byText("Неверно указан логин или пароль")).waitUntil(Condition.visible, 15000);
+    @DisplayName("Should get error message if login with blocked registered user")
+    void shouldGetErrorIfBlockedUser() {
+        val blockedUser = getRegisterUser("blocked");
+        $("[name='login']").setValue(blockedUser.getLogin());
+        $("[type='password']").setValue(blockedUser.getPassword());
+        $("[data-test-id='action-login']").click();
+        $(withText("Ошибка")).shouldBe(appear, Duration.ofSeconds(15));
+        $(".notification__content").shouldHave(exactText("Ошибка! Пользователь заблокирован"));
     }
 
     @Test
-    void shouldNotLogInIfInvalidPassword() {
-        RequestData user = DataGenerator.generateNewActiveInvalidPassword();
-        open("http://localhost:9999");
-        SelenideElement form = $("[action]");
-        form.$(cssSelector("[name=login]")).sendKeys(user.getLogin());
-        form.$(cssSelector("[name=password]")).sendKeys(user.getPassword());
-        form.$(cssSelector("[type=button]")).click();
-        $(byText("Неверно указан логин или пароль")).waitUntil(Condition.visible, 15000);
+    @DisplayName("Should get error message if login with wrong login")
+    void shouldGetErrorIfWrongLogin() {
+        val registeredUser = getRegisterUser("active");
+        var wrongLogin = getRandomLogin();
+        $("[name='login']").setValue(DataGenerator.getRandomLogin());
+        $("[type='password']").setValue(registeredUser.getPassword());
+        $("[data-test-id='action-login']").click();
+        $(withText("Ошибка")).shouldBe(appear, Duration.ofSeconds(15));
+        $(".notification__content").shouldHave(exactText("Ошибка! Неверно указан логин или пароль"));
+    }
+
+    @Test
+    @DisplayName("Should get error message if login with wrong password")
+    void shouldGetErrorIfWrongPassword() {
+        val registeredUser = getRegisterUser("active");
+        var wrongPassword = getRandomPassword();
+        $("[name='login']").setValue(registeredUser.getLogin());
+        $("[type='password']").setValue(DataGenerator.getRandomPassword());
+        $("[data-test-id='action-login']").click();
+        $(withText("Ошибка")).shouldBe(appear, Duration.ofSeconds(15));
+        $(".notification__content").shouldHave(exactText("Ошибка! Неверно указан логин или пароль"));
     }
 }
