@@ -22,7 +22,7 @@ jobs:
           java-version: '11'
           distribution: 'temurin'
       - name: Run SUT
-        run: java -jar ./artifacts/app-card-delivery.jar &
+        run: java -jar ./artifacts/app-ibank.jar &
       - name: Chmod gradlew
         run: chmod +x gradlew
       - name: Build with Gradle

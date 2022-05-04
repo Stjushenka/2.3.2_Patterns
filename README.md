@@ -1,4 +1,4 @@
-[![Build status](https://ci.appveyor.com/api/projects/status/5twkl8261po1hlnv?svg=true)](https://ci.appveyor.com/project/Stjushenka/2-3-2-patterns)
+[![.github/workflows/gradle.yml](https://github.com/Stjushenka/Patterns/actions/workflows/gradle.yml/badge.svg)](https://github.com/Stjushenka/Patterns/actions/workflows/gradle.yml)
 
 Время, затраченное на ручное тестирование (минут): 10
 
