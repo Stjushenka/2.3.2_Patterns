@@ -1,4 +1,4 @@
-[![.github/workflows/gradle.yml](https://github.com/Stjushenka/Patterns/actions/workflows/gradle.yml/badge.svg)](https://github.com/Stjushenka/Patterns/actions/workflows/gradle.yml)
+[![.github/workflows/gradle.yml](https://github.com/Stjushenka/2.3.2_Patterns/actions/workflows/gradle.yml/badge.svg)](https://github.com/Stjushenka/2.3.2_Patterns/actions/workflows/gradle.yml)
 
 Время, затраченное на ручное тестирование (минут): 10
 
